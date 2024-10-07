@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat Application</title>
+  <style>
+    /* Define CSS Variables for Consistent Theming */
+    :root {
+      --primary-color: #006400;
+      --secondary-color: #4CAF50;
+      --text-color: #333333;
+      --background-color: #F4F4F4;
+      --white: #FFFFFF;
+      --light-green: #E6F3E6;
+    }
+
+    /* Reset and Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body, html {
+      height: 100%;
+      background-color: var(--background-color);
+    }
+
+    /* Main Container */
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background-color: var(--white);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      padding: 15px;
+      font-size: 1.5em;
+      font-weight: bold;
+      text-align: center;
+      position: fixed;
+      width: 100%;
+      z-index: 1000;
+      top: 0;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background-color: var(--light-green);
+      padding: 15px;
+      position: fixed;
+      top: 70px; /* Space for header */
+      height: calc(100vh - 70px); /* Full height minus header */
+      overflow-y: auto;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar h2 {
+      margin-bottom: 10px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .sidebar li {
+      padding: 10px;
+      margin-bottom: 5px;
+      background-color: var(--white);
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .sidebar li:hover {
+      background-color: var(--secondary-color);
+      color: var(--white);
+    }
+
+    .new-conversation {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: var(--secondary-color);
+      color: var(--white);
+      text-align: center;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    /* Chat Container */
+    .chat-container {
+      margin-left: 250px; /* Space for sidebar */
+      margin-top: 70px; /* Space for header */
+      padding: 20px;
+      height: calc(100vh - 70px); /* Full height minus header */
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Chat Header */
+    .chat-header {
+      background-color: var(--light-green);
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 1.2em;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    /* Chat Messages Section */
+    .chat-messages {
+      background-color: var(--white);
+      padding: 15px;
+      border-radius: 10px;
+      flex-grow: 1;
+      overflow-y: auto;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-message {
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      max-width: 70%;
+      word-wrap: break-word;
+      white-space: pre-wrap; /* Preserve line breaks */
+    }
+
+    /* User Message */
+    .user-message {
+      background-color: var(--secondary-color);
+      color: var(--white);
+      align-self: flex-end;
+      text-align: right;
+    }
+
+    /* Assistant Message */
+    .assistant-message {
+      background-color: #f0f0f0;
+      color: var(--text-color);
+      align-self: flex-start;
+      text-align: left;
+    }
+
+    /* Chat Input */
+    .chat-input {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background-color: var(--white);
+      border-top: 1px solid #ccc;
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    #chatInput {
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+
+    #sendButton {
+      background: none;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      font-size: 20px;
+      color: var(--primary-color);
+    }
+
+    /* Responsive Design */
+    @media screen and (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+
+      .chat-container {
+        margin-left: 0;
+      }
+
+      .header {
+        position: relative;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      OSHA Regulations Chatbot
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h2>Conversations</h2>
+      <ul id="conversationList">
+        <!-- Conversations will be loaded here -->
+      </ul>
+      <div class="new-conversation" id="newConversation">
+        + New Conversation
+      </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+      <!-- Chat Header -->
+      <div class="chat-header" id="chatHeader">
+        Welcome to the Chat
+      </div>
+
+      <!-- Chat Messages -->
+      <div class="chat-messages" id="chatMessages">
+        <!-- Messages will be dynamically added here -->
+      </div>
+
+      <!-- Chat Input -->
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Type your message..." />
+        <button id="sendButton">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // Elements
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.getElementById('sendButton');
+    const conversationList = document.getElementById('conversationList');
+    const newConversationButton = document.getElementById('newConversation');
+    const chatHeader = document.getElementById('chatHeader');
+
+    let conversationId = null;
+
+    // Event Listener for Send Button
+    sendButton.addEventListener('click', sendMessage);
+
+    // Event Listener for Enter Key
+    chatInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    // Event Listener for New Conversation Button
+    newConversationButton.addEventListener('click', createNewConversation);
+
+    function sendMessage() {
+      const message = chatInput.value.trim();
+      if (message === '') return;
+
+      if (!conversationId) {
+        alert('Please select or create a conversation.');
+        return;
+      }
+
+      // Display user's message
+      displayMessage(message, 'user-message');
+      chatInput.value = '';
+
+      // Display loading message
+      const loadingMessage = displayMessage('Typing...', 'assistant-message');
+
+      // Send the message to the backend
+      fetch('/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: message, conversation_id: conversationId })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Remove loading message
+        loadingMessage.remove();
+
+        if (data.error) {
+          displayMessage('Error: ' + data.error, 'assistant-message');
+        } else {
+          // Display assistant's answer
+          displayMessage(data.answer, 'assistant-message');
+
+          // Display sources
+          data.sources.forEach((source, index) => {
+            const sourceMessage = `Source ${index + 1}:\nURL: ${source.url}\nParagraph: ${source.paragraph}\nSnippet: ${source.snippet}`;
+            displayMessage(sourceMessage, 'assistant-message');
+          });
+        }
+      })
+      .catch(error => {
+        // Remove loading message
+        loadingMessage.remove();
+
+        console.error('Error:', error);
+        displayMessage('An error occurred while processing your request.', 'assistant-message');
+      });
+    }
+
+    function displayMessage(message, messageType) {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('chat-message', messageType);
+      messageElement.innerText = message;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      return messageElement;
+    }
+
+    function createNewConversation() {
+      fetch('/conversation', {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.conversation_id) {
+          conversationId = data.conversation_id;
+          chatMessages.innerHTML = '';
+          chatHeader.innerText = 'Conversation';
+          loadConversations();
+        } else {
+          alert('Error creating a new conversation.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while creating a new conversation.');
+      });
+    }
+
+    function loadConversations() {
+      fetch('/conversations')
+      .then(response => response.json())
+      .then(data => {
+        conversationList.innerHTML = '';
+        data.forEach(convo => {
+          const li = document.createElement('li');
+          li.innerText = convo.name;
+          li.dataset.id = convo.id;
+          li.addEventListener('click', () => selectConversation(convo.id, convo.name));
+          conversationList.appendChild(li);
+        });
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while loading conversations.');
+      });
+    }
+
+    function selectConversation(id, name) {
+      conversationId = id;
+      chatMessages.innerHTML = '';
+      chatHeader.innerText = name;
+      fetch(`/conversation/${id}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          alert(data.error);
+        } else {
+          data.forEach(message => {
+            const messageType = message.sender === 'user' ? 'user-message' : 'assistant-message';
+            displayMessage(message.text, messageType);
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while loading the conversation.');
+      });
+    }
+
+    // Load conversations on page load
+    loadConversations();
+  </script>
+</body>
+</html>
