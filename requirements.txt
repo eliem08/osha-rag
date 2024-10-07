@@ -1,3 +1,4 @@
+pydantic==1.10.11
 flask
 langchain
 langchain-community
