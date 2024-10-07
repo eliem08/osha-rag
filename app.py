@@ -17,7 +17,7 @@ if 'OPENAI_API_KEY' not in os.environ:
 
 # Load the FAISS index and embeddings once at startup
 embeddings = OpenAIEmbeddings()
-faiss_index = FAISS.load_local("faiss_index", embeddings)
+faiss_index = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
 retriever = faiss_index.as_retriever()
 
 # Initialize the LLM
